@@ -1,23 +1,19 @@
 const express = require('express');
+const morgan = require('morgan');
+
+// everything related to express goes here
+
+const productRouter = require('./routes/productRoutes');
+const userRouter = require('./routes/userRoutes');
 
 const app = express();
 
-// defining a rout
-// responds to the get http method and the url is /
-// what we need to be done when called get is specidied in the call back funciorn () => as second argument.
-// route defined for the http method get and the url /
-app.get('/', (req, res) => {
-  res.status(200).json({ message: 'These are the products', app: 'Shopper' });
-});
+app.use(morgan('dev'));
+app.use(express.json());
 
-// route defined for the http method post and the url /
-app.post('/', (req, res) => {
-  res.send('You can post to this endpoint...');
-});
-const port = 3000;
+// here we are mounting routers
+// now productRouter and userRouter and middlewares
+app.use('/api/v1/tours', productRouter);
+app.use('/api/v1/users', userRouter);
 
-// this ()=> is the call back funcion that will
-// be call as soon as the server starts listening.
-app.listen(port, () => {
-  console.log(`App running on port ${port}...`);
-});
+module.exports = app;
