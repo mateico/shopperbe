@@ -1,5 +1,7 @@
 const app = require('./app');
 
+//console.log(process.env);
+
 const port = process.env.PORT || 3000;
 
 // this ()=> is the call back funcion that will
