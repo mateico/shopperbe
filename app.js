@@ -16,7 +16,7 @@ app.use(express.json());
 
 // here we are mounting routers
 // now productRouter and userRouter and middlewares
-app.use('/api/v1/tours', productRouter);
+app.use('/api/v1/products', productRouter);
 app.use('/api/v1/users', userRouter);
 
 module.exports = app;

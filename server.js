@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const app = require('./app');
+const mongoose = require('mongoose');
 
 dotenv.config({ path: './config.env' });
 
@@ -18,6 +18,20 @@ mongoose
   .then(() => {
     console.log('DB connection successful!!');
   });
+
+/* const productTest = new Product({
+  name: 'Programming in C 2',
+  price: 99,
+});
+
+productTest
+  .save()
+  .then(doc => {
+    console.log(doc);
+  })
+  .catch(err => {
+    console.log('ERROR: ', err);
+  }); */
 
 const port = process.env.PORT || 3000;
 
