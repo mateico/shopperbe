@@ -19,20 +19,32 @@ exports.getAllProducts = async (req, res) => {
     let query = Product.find(JSON.parse(queryStr));
 
     //2) Sorting
-    if (req.query.sort) {
+    /*  if (req.query.sort) {
       const sortBy = req.query.sort.split(',').join(' ');
       query = query.sort(sortBy);
     } else {
       query = query.sort('-createdAt');
-    }
+    } */
 
     //3) FIELD LIMITING
-    if (req.query.fields) {
+    /*  if (req.query.fields) {
       const fields = req.query.fields.split('.').join(' ');
       query = query.select(fields);
     } else {
       query = query.select('-__v');
-    }
+    } */
+
+    //4) PAGINATION
+    /* const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || 1;
+    const skip = (page - 1) * limit;
+
+    query = query.skip(skip).limit(limit);
+
+    if (req.query.page) {
+      const numberOfProducts = await Product.countDocuments();
+      if (skip >= numberOfProducts) throw new Error('This page does not exist');
+    } */
 
     //  EXECUTE QUERY
     const products = await query;
