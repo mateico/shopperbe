@@ -1,5 +1,6 @@
 const express = require('express');
 const morgan = require('morgan');
+const compression = require('compression');
 
 const AppError = require('./utils/appError');
 //everything related to express goes here
@@ -14,6 +15,8 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 app.use(express.json());
+
+app.use(compression());
 
 // here we are mounting routers
 // now productRouter and userRouter and middlewares
