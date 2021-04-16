@@ -1,34 +1,23 @@
-const fs = require('fs');
-
-const products = JSON.parse(
-  fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
-);
+const Product = require('./../models/productModel');
+const APIFeatures = require('./../utils/apiFeatures');
+const catchAsync = require('./../utils/catchAsync');
+const AppError = require('./../utils/appError');
 
 // param middleware has the val parameter
 // the return will make the next() method not reachable.
-exports.checkID = (req, res, next, val) => {
-  console.log(`Tour id is: ${val}`);
-  if (req.params.id * 1 > products.length) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'Invalid ID',
-    });
-  }
-  next();
-};
 
-exports.checkBody = (req, res, next) => {
-  //console.log(`Tour id is: ${val}`);
-  if (!req.body.name || !req.body.price) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'Missing name or price',
-    });
-  }
-  next();
-};
+exports.getAllProducts = catchAsync(async (req, res, next) => {
+  //  EXECUTE QUERY
+  const features = new APIFeatures(Product.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .pagination();
+  /*  .sort()
+      .limitFields()
+      .pagination();  */
+  const products = await features.query;
 
-exports.getAllProducts = (req, res) => {
   res.status(200).json({
     status: 'success',
     result: products.length,
@@ -36,35 +25,60 @@ exports.getAllProducts = (req, res) => {
       products,
     },
   });
-};
+});
 
-exports.getProduct = (req, res) => {
-  console.log(req.params);
+exports.getProduct = catchAsync(async (req, res, next) => {
+  const product = await Product.findById(req.params.id);
+
+  if (!product) {
+    return next(new AppError('No product found with that ID', 404));
+  }
+
   res.status(200).json({
     status: 'success',
     data: {
-      id: req.params,
+      product,
     },
   });
-};
+});
 
-exports.updateProduct = (req, res) => {
+exports.updateProduct = catchAsync(async (req, res, next) => {
+  const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!product) {
+    return next(new AppError('No product found with that ID', 404));
+  }
   res.status(200).json({
     status: 'success',
     data: {
-      tour: 'Updated tour here...',
+      product,
     },
   });
-};
+});
 
-exports.createProduct = (req, res) => {
-  console.log(req.body);
-  res.send('Done');
-};
+exports.createProduct = catchAsync(async (req, res, next) => {
+  const newProduct = await Product.create(req.body);
 
-exports.deleteProduct = (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    data: {
+      product: newProduct,
+    },
+  });
+});
+
+exports.deleteProduct = catchAsync(async (req, res, next) => {
+  const product = await Product.findByIdAndDelete(req.params.id);
+
+  if (!product) {
+    return next(new AppError('No product found with that ID', 404));
+  }
+
   res.status(204).json({
     status: 'success',
     data: null,
   });
-};
+});

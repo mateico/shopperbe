@@ -1,8 +1,7 @@
-const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const app = require('./app');
-
 dotenv.config({ path: './config.env' });
+const app = require('./app');
+const mongoose = require('mongoose');
 
 const DB = process.env.DATABASE.replace(
   '<PASSWORD>',
@@ -19,6 +18,20 @@ mongoose
     console.log('DB connection successful!!');
   });
 
+/* const productTest = new Product({
+  name: 'Programming in C 2',
+  price: 99,
+});
+
+productTest
+  .save()
+  .then(doc => {
+    console.log(doc);
+  })
+  .catch(err => {
+    console.log('ERROR: ', err);
+  }); */
+
 const port = process.env.PORT || 3000;
 
 // this ()=> is the call back funcion that will
@@ -26,3 +39,5 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });
+
+//test
