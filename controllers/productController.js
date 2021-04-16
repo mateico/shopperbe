@@ -1,133 +1,84 @@
 const Product = require('./../models/productModel');
+const APIFeatures = require('./../utils/apiFeatures');
+const catchAsync = require('./../utils/catchAsync');
+const AppError = require('./../utils/appError');
 
 // param middleware has the val parameter
 // the return will make the next() method not reachable.
 
-exports.getAllProducts = async (req, res) => {
-  try {
-    //  BUILD QUERY
-    //1) Filtering
-    const queryObj = { ...req.query };
-    const excludedFields = ['page', 'sort', 'limit', 'fields'];
-    excludedFields.forEach(el => delete queryObj[el]);
+exports.getAllProducts = catchAsync(async (req, res, next) => {
+  //  EXECUTE QUERY
+  const features = new APIFeatures(Product.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .pagination();
+  /*  .sort()
+      .limitFields()
+      .pagination();  */
+  const products = await features.query;
 
-    //1B) Advanced filtering
-    let queryStr = JSON.stringify(queryObj);
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
-    console.log(JSON.parse(queryStr));
+  res.status(200).json({
+    status: 'success',
+    result: products.length,
+    data: {
+      products,
+    },
+  });
+});
 
-    let query = Product.find(JSON.parse(queryStr));
+exports.getProduct = catchAsync(async (req, res, next) => {
+  const product = await Product.findById(req.params.id);
 
-    //2) Sorting
-    /*  if (req.query.sort) {
-      const sortBy = req.query.sort.split(',').join(' ');
-      query = query.sort(sortBy);
-    } else {
-      query = query.sort('-createdAt');
-    } */
-
-    //3) FIELD LIMITING
-    /*  if (req.query.fields) {
-      const fields = req.query.fields.split('.').join(' ');
-      query = query.select(fields);
-    } else {
-      query = query.select('-__v');
-    } */
-
-    //4) PAGINATION
-    /* const page = req.query.page * 1 || 1;
-    const limit = req.query.limit * 1 || 1;
-    const skip = (page - 1) * limit;
-
-    query = query.skip(skip).limit(limit);
-
-    if (req.query.page) {
-      const numberOfProducts = await Product.countDocuments();
-      if (skip >= numberOfProducts) throw new Error('This page does not exist');
-    } */
-
-    //  EXECUTE QUERY
-    const products = await query;
-
-    res.status(200).json({
-      status: 'success',
-      result: products.length,
-      data: {
-        products,
-      },
-    });
-  } catch (err) {
-    res.status(404).json({
-      status: 'fail',
-      message: err,
-    });
+  if (!product) {
+    return next(new AppError('No product found with that ID', 404));
   }
-};
 
-exports.getProduct = async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      product,
+    },
+  });
+});
 
-    res.status(200).json({
-      status: 'success',
-      data: {
-        product,
-      },
-    });
-  } catch (err) {
-    res.status(404).json({
-      status: 'fail',
-      message: err,
-    });
+exports.updateProduct = catchAsync(async (req, res, next) => {
+  const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!product) {
+    return next(new AppError('No product found with that ID', 404));
   }
-};
+  res.status(200).json({
+    status: 'success',
+    data: {
+      product,
+    },
+  });
+});
 
-exports.updateProduct = async (req, res) => {
-  try {
-    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-    res.status(200).json({
-      status: 'success',
-      data: {
-        product,
-      },
-    });
-  } catch (err) {
-    res.status(404).json({
-      status: 'fail',
-      message: err,
-    });
+exports.createProduct = catchAsync(async (req, res, next) => {
+  const newProduct = await Product.create(req.body);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      product: newProduct,
+    },
+  });
+});
+
+exports.deleteProduct = catchAsync(async (req, res, next) => {
+  const product = await Product.findByIdAndDelete(req.params.id);
+
+  if (!product) {
+    return next(new AppError('No product found with that ID', 404));
   }
-};
 
-exports.createProduct = async (req, res) => {
-  try {
-    const newProduct = await Product.create(req.body);
-
-    res.status(200).json({
-      status: 'success',
-      data: {
-        product: newProduct,
-      },
-    });
-  } catch (err) {
-    res.status(400).json({ status: 'fail', message: err });
-  }
-};
-
-exports.deleteProduct = async (req, res) => {
-  try {
-    await Product.findByIdAndDelete(req.params.id);
-    res.status(204).json({
-      status: 'success',
-      data: null,
-    });
-  } catch (err) {
-    res.status(404).json({
-      status: 'fail',
-      message: err,
-    });
-  }
-};
+  res.status(204).json({
+    status: 'success',
+    data: null,
+  });
+});
